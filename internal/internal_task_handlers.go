@@ -876,13 +876,6 @@ func (w *workflowExecutionContextImpl) retryLocalActivity(lar *localActivityResu
 	if backoff > 0 && backoff <= w.GetDecisionTimeout() {
 		// we need a local retry
 		time.AfterFunc(backoff, func() {
-			w.Lock()
-			defer w.Unlock(nil)
-
-			// after backoff, check if it is still relevant
-			if w.IsDestroyed() {
-				return
-			}
 			if _, ok := w.eventHandler.pendingLaTasks[lar.task.activityID]; !ok {
 				return
 			}
@@ -1368,6 +1361,8 @@ func (wth *workflowTaskHandlerImpl) completeWorkflow(
 			ExecutionStartToCloseTimeoutSeconds: contErr.params.executionStartToCloseTimeoutSeconds,
 			TaskStartToCloseTimeoutSeconds:      contErr.params.taskStartToCloseTimeoutSeconds,
 			Header:                              contErr.params.header,
+			Memo:                                workflowContext.workflowInfo.Memo,
+			SearchAttributes:                    workflowContext.workflowInfo.SearchAttributes,
 		}
 	} else if workflowContext.err != nil {
 		// Workflow failures
